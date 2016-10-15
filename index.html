@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <title>notif</title>
+    <script src="qrcode.min.js"></script>
+  </head>
+  <body>
+    <div>
+      Token: <pre id="token"></pre>
+    </div>
+
+    <a href="#" onClick="download_sh();">DOWNLOAD</a>
+
+    <div id="qrcode"></div>
+    <script>
+      var randomString = function(length) {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for(var i = 0; i < length; i++) {
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+      }
+
+      document.getElementById("token").innerHTML = randomString(32);
+
+      host = window.location.host;
+      token = document.getElementById("token").innerHTML
+
+      new QRCode(document.getElementById("qrcode"), host + ' ' + token);
+
+      function download_sh() {
+        var sh = `#!/bin/bash
+
+token="${token}"
+message="$1"
+
+curl -H "Content-Type: application/json" -X POST -d '{"token":"'$token'","message":"'"$message"'"}' http://${host}/push
+`
+
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(sh));
+        element.setAttribute('download', "notif.sh");
+
+        element.style.display = 'none';
+
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+
+        return false;
+      }
+    </script>
+  </body>
+</html>
